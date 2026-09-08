@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FAQItem, Vendor } from '../../types';
 import { storageService } from '../../services/storage';
-import { HelpCircle, Plus, Trash2, Edit3, X, Sparkles, ChevronDown } from 'lucide-react';
+import { HelpCircle, Plus, Trash2, Edit3, X, Sparkles, ChevronDown, Check } from 'lucide-react';
 
 interface VendorFAQsTabProps {
   vendor: Vendor;
@@ -23,6 +23,7 @@ export const VendorFAQsTab: React.FC<VendorFAQsTabProps> = ({ vendor, onRefresh,
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [updateMsg, setUpdateMsg] = useState<string | null>(null);
 
   // Form fields
   const [question, setQuestion] = useState('');
@@ -60,21 +61,49 @@ export const VendorFAQsTab: React.FC<VendorFAQsTabProps> = ({ vendor, onRefresh,
       category: category.trim(),
     };
 
+    const isUpdate = Boolean(editingId);
     storageService.saveFAQ(vendor.id, newFaq);
     setIsEditing(false);
     setEditingId(null);
     onRefresh();
+    const msg = isUpdate ? 'FAQ question updated successfully!' : 'New FAQ question added successfully!';
+    setUpdateMsg(msg);
+    setTimeout(() => setUpdateMsg(null), 5000);
   };
 
   const handleDelete = (faqId: string) => {
     if (confirm('Are you sure you want to delete this FAQ?')) {
       storageService.deleteFAQ(vendor.id, faqId);
       onRefresh();
+      setUpdateMsg('FAQ question deleted successfully.');
+      setTimeout(() => setUpdateMsg(null), 4000);
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Update Message Alert Banner */}
+      {updateMsg && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-950 text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              <Check className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="block font-black text-[13px] text-emerald-900">Updated Successfully!</span>
+              <span className="text-[11px] text-emerald-700 font-medium">{updateMsg}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setUpdateMsg(null)}
+            className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E8DFC8] shadow-xs">
         <div>

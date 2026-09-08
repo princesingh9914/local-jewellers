@@ -96,20 +96,90 @@ export const SEED_VENDORS: Vendor[] = [
 
 export const SEED_CATEGORIES: Category[] = [
   // Rajwada categories
-  { id: 'cat_r1', vendorId: 'vendor_rajwada', name: 'Bridal Chokers', slug: 'bridal-chokers', description: 'Royal heavy Kundan and Polki bridal necklaces' },
-  { id: 'cat_r2', vendorId: 'vendor_rajwada', name: 'Jhumkas & Chaandbalis', slug: 'jhumkas-chaandbalis', description: 'Traditional Rajasthani earrings and ear chains' },
-  { id: 'cat_r3', vendorId: 'vendor_rajwada', name: 'Antique Kadas & Bangles', slug: 'antique-kadas', description: 'Solid 22K gold kadas with meenakari work' },
-  { id: 'cat_r4', vendorId: 'vendor_rajwada', name: 'Maang Tikka & Mathapatti', slug: 'maang-tikka', description: 'Bridal head jewelry with gemstones' },
+  { 
+    id: 'cat_r1', 
+    vendorId: 'vendor_rajwada', 
+    name: 'Bridal Chokers', 
+    slug: 'bridal-chokers', 
+    description: 'Royal heavy Kundan and Polki bridal necklaces',
+    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&auto=format&fit=crop&q=80'
+  },
+  { 
+    id: 'cat_r2', 
+    vendorId: 'vendor_rajwada', 
+    name: 'Jhumkas & Chaandbalis', 
+    slug: 'jhumkas-chaandbalis', 
+    description: 'Traditional Rajasthani earrings and ear chains',
+    image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=600&auto=format&fit=crop&q=80'
+  },
+  { 
+    id: 'cat_r3', 
+    vendorId: 'vendor_rajwada', 
+    name: 'Antique Kadas & Bangles', 
+    slug: 'antique-kadas', 
+    description: 'Solid 22K gold kadas with meenakari work',
+    image: 'https://images.unsplash.com/photo-1611591475155-4286fa7c2e60?w=600&auto=format&fit=crop&q=80'
+  },
+  { 
+    id: 'cat_r4', 
+    vendorId: 'vendor_rajwada', 
+    name: 'Maang Tikka & Mathapatti', 
+    slug: 'maang-tikka', 
+    description: 'Bridal head jewelry with gemstones',
+    image: 'https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?w=600&auto=format&fit=crop&q=80'
+  },
 
   // Surya categories
-  { id: 'cat_s1', vendorId: 'vendor_surya', name: 'Temple Necklaces', slug: 'temple-necklaces', description: 'Sacred Lakshmi & peacock motifs in 22K antique finish' },
-  { id: 'cat_s2', vendorId: 'vendor_surya', name: 'Gold Chains & Mangalsutras', slug: 'chains-mangalsutras', description: 'Daily wear 916 hallmark chains and designer tanmaniya' },
-  { id: 'cat_s3', vendorId: 'vendor_surya', name: 'Gold Rings & Bands', slug: 'gold-rings', description: 'Lightweight & couple bands with hallmark guarantee' },
+  { 
+    id: 'cat_s1', 
+    vendorId: 'vendor_surya', 
+    name: 'Temple Necklaces', 
+    slug: 'temple-necklaces', 
+    description: 'Sacred Lakshmi & peacock motifs in 22K antique finish',
+    image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=600&auto=format&fit=crop&q=80'
+  },
+  { 
+    id: 'cat_s2', 
+    vendorId: 'vendor_surya', 
+    name: 'Gold Chains & Mangalsutras', 
+    slug: 'chains-mangalsutras', 
+    description: 'Daily wear 916 hallmark chains and designer tanmaniya',
+    image: 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=600&auto=format&fit=crop&q=80'
+  },
+  { 
+    id: 'cat_s3', 
+    vendorId: 'vendor_surya', 
+    name: 'Gold Rings & Bands', 
+    slug: 'gold-rings', 
+    description: 'Lightweight & couple bands with hallmark guarantee',
+    image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&auto=format&fit=crop&q=80'
+  },
 
   // Meenakshi categories
-  { id: 'cat_m1', vendorId: 'vendor_meenakshi', name: 'Diamond Solitaires', slug: 'diamond-solitaires', description: 'IGI & GIA certified conflict-free solitaires' },
-  { id: 'cat_m2', vendorId: 'vendor_meenakshi', name: 'Emerald & Jadau Sets', slug: 'emerald-jadau', description: 'Zambian emeralds with uncut raw diamonds' },
-  { id: 'cat_m3', vendorId: 'vendor_meenakshi', name: 'Rose Gold Daily Wear', slug: 'rose-gold-wear', description: 'Modern office wear jewellery in 18K rose gold' }
+  { 
+    id: 'cat_m1', 
+    vendorId: 'vendor_meenakshi', 
+    name: 'Diamond Solitaires', 
+    slug: 'diamond-solitaires', 
+    description: 'IGI & GIA certified conflict-free solitaires',
+    image: 'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=600&auto=format&fit=crop&q=80'
+  },
+  { 
+    id: 'cat_m2', 
+    vendorId: 'vendor_meenakshi', 
+    name: 'Emerald & Jadau Sets', 
+    slug: 'emerald-jadau', 
+    description: 'Zambian emeralds with uncut raw diamonds',
+    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&auto=format&fit=crop&q=80'
+  },
+  { 
+    id: 'cat_m3', 
+    vendorId: 'vendor_meenakshi', 
+    name: 'Rose Gold Daily Wear', 
+    slug: 'rose-gold-wear', 
+    description: 'Modern office wear jewellery in 18K rose gold',
+    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&auto=format&fit=crop&q=80'
+  }
 ];
 
 export const SEED_PRODUCTS: Product[] = [

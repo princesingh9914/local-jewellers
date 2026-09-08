@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Store, 
@@ -16,10 +16,14 @@ import {
   Package, 
   Layers,
   ArrowLeft,
-  RotateCcw
+  RotateCcw,
+  LogOut,
+  KeyRound,
+  Lock
 } from 'lucide-react';
 import { Vendor, AppView } from '../../types';
 import { storageService } from '../../services/storage';
+import { authApi } from '../../services/authApi';
 
 interface AdminDashboardProps {
   onNavigate: (view: AppView) => void;
@@ -29,10 +33,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const [vendors, setVendors] = useState<Vendor[]>(storageService.getVendors());
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // Ensure current session is authenticated as master admin
-  React.useEffect(() => {
-    storageService.setMasterAdmin(true);
-  }, []);
+  // Strictly enforce super admin session
+  useEffect(() => {
+    if (!authApi.isSuperAdminLoggedIn()) {
+      onNavigate({ type: 'landing' });
+    }
+  }, [onNavigate]);
   
   // New vendor form state
   const [name, setName] = useState('');
@@ -42,6 +48,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [plan, setPlan] = useState<Vendor['plan']>('Gold VIP');
+  const [vendorPassword, setVendorPassword] = useState('');
+  const [vendorPin, setVendorPin] = useState('');
 
   const refreshVendors = () => {
     setVendors(storageService.getVendors());
@@ -95,6 +103,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     };
 
     storageService.saveVendor(newVendor);
+    
+    // Register unique vendor credentials on backend
+    authApi.registerVendorCredentials(
+      newVendor.id,
+      newVendor.name,
+      newVendor.phone,
+      vendorPassword.trim() || `${slug}@123`,
+      vendorPin.trim() || '1234'
+    );
+
     setShowAddModal(false);
     setName('');
     setOwnerName('');
@@ -102,6 +120,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     setWhatsapp('');
     setCity('');
     setState('');
+    setVendorPassword('');
+    setVendorPin('');
     refreshVendors();
   };
 
@@ -132,7 +152,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-[#E5C158]" />
               <span className="font-bold text-sm sm:text-base font-royal">
-                Master Admin Control Room (Owner: Rahul &bull; 7087033009)
+                Super Admin Control Room (Platform Master)
               </span>
             </div>
           </div>
@@ -153,6 +173,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             >
               <Plus className="w-4 h-4" />
               <span>Add New Jeweller</span>
+            </button>
+
+            <button
+              onClick={async () => {
+                await authApi.logoutSuperAdmin();
+                storageService.setMasterAdmin(false);
+                onNavigate({ type: 'landing' });
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900 text-red-200 text-xs font-semibold transition-colors border border-red-800/60"
+              title="Super Admin Logout"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
             </button>
           </div>
         </div>
@@ -443,6 +476,44 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                   <option value="Silver">Silver</option>
                   <option value="Free">Free</option>
                 </select>
+              </div>
+
+              {/* Vendor Portal Security Credentials */}
+              <div className="p-3 bg-[#FAF6EE] rounded-xl border border-[#E8DFC8] space-y-2.5">
+                <div className="font-bold text-[#720917] text-xs flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5 text-[#B8860B]" />
+                  <span>Vendor Portal Login Credentials</span>
+                </div>
+                <p className="text-[11px] text-[#7A6855]">
+                  Har vendor ka alag Phone Number, Password aur PIN hota hai.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#2A1810] mb-0.5">
+                      Login Password *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. store@pass123"
+                      value={vendorPassword}
+                      onChange={(e) => setVendorPassword(e.target.value)}
+                      className="w-full px-3 py-1.5 text-xs border border-[#D8CEBE] rounded-lg font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#2A1810] mb-0.5">
+                      4-Digit Staff PIN *
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="e.g. 1234"
+                      value={vendorPin}
+                      onChange={(e) => setVendorPin(e.target.value)}
+                      className="w-full px-3 py-1.5 text-xs border border-[#D8CEBE] rounded-lg font-mono font-bold"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="pt-3 flex gap-2">

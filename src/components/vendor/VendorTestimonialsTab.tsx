@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Testimonial, Vendor } from '../../types';
 import { storageService } from '../../services/storage';
-import { Star, Plus, Trash2, Edit3, Sparkles, X, ShieldCheck, UserCheck } from 'lucide-react';
+import { ImageUploader } from '../common/ImageUploader';
+import { Star, Plus, Trash2, Edit3, Sparkles, X, ShieldCheck, UserCheck, Check } from 'lucide-react';
 
 interface VendorTestimonialsTabProps {
   vendor: Vendor;
@@ -22,6 +23,7 @@ export const VendorTestimonialsTab: React.FC<VendorTestimonialsTabProps> = ({ ve
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [updateMsg, setUpdateMsg] = useState<string | null>(null);
 
   // Form fields
   const [customerName, setCustomerName] = useState('');
@@ -79,21 +81,51 @@ export const VendorTestimonialsTab: React.FC<VendorTestimonialsTabProps> = ({ ve
       isVerifiedBuyer,
     };
 
+    const isUpdate = Boolean(editingId);
     storageService.saveTestimonial(vendor.id, newTestimonial);
     setIsEditing(false);
     setEditingId(null);
     onRefresh();
+    const msg = isUpdate
+      ? `Review from "${newTestimonial.customerName}" updated successfully!`
+      : `New review from "${newTestimonial.customerName}" added successfully!`;
+    setUpdateMsg(msg);
+    setTimeout(() => setUpdateMsg(null), 5000);
   };
 
   const handleDelete = (testId: string) => {
     if (confirm('Are you sure you want to delete this customer review?')) {
       storageService.deleteTestimonial(vendor.id, testId);
       onRefresh();
+      setUpdateMsg('Customer review deleted successfully.');
+      setTimeout(() => setUpdateMsg(null), 4000);
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Update Message Alert Banner */}
+      {updateMsg && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-950 text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              <Check className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="block font-black text-[13px] text-emerald-900">Updated Successfully!</span>
+              <span className="text-[11px] text-emerald-700 font-medium">{updateMsg}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setUpdateMsg(null)}
+            className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Header with Stats & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E8DFC8] shadow-xs">
         <div>
@@ -200,30 +232,14 @@ export const VendorTestimonialsTab: React.FC<VendorTestimonialsTabProps> = ({ ve
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-[#2A1810] mb-1 flex items-center justify-between">
-                  <span>Customer Photo URL</span>
-                  <span className="text-[11px] text-[#7A6855]">Select preset or paste URL</span>
-                </label>
-                <input
-                  type="url"
+                <ImageUploader
                   value={photo}
-                  onChange={(e) => setPhoto(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#D8CEBE] text-xs focus:border-[#4A0E17] focus:outline-hidden mb-2"
+                  onChange={(val) => setPhoto(val)}
+                  label="Customer Photo / Reviewer Avatar (ग्राहक की फोटो अपलोड करें)"
+                  helperText="Upload a photo from device or choose a preset avatar."
+                  aspectRatio="square"
+                  presets={PRESET_AVATARS.map((url, i) => ({ label: `Patron ${i + 1}`, url }))}
                 />
-                <div className="flex items-center gap-2">
-                  {PRESET_AVATARS.map((av, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setPhoto(av)}
-                      className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${
-                        photo === av ? 'border-[#4A0E17] ring-2 ring-[#D4AF37]' : 'border-gray-200 opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={av} alt="avatar" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div className="md:col-span-2">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppView, Vendor } from './types';
 import { storageService } from './services/storage';
+import { authApi } from './services/authApi';
 import { Header } from './components/common/Header';
 import { Footer } from './components/common/Footer';
 import { LandingPage } from './components/landing/LandingPage';
@@ -16,7 +17,7 @@ import { CreateStoreModal } from './components/common/CreateStoreModal';
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>({ type: 'landing' });
   const [activeVendor, setActiveVendor] = useState<Vendor | undefined>(undefined);
-  const [isMasterAdmin, setIsMasterAdmin] = useState<boolean>(() => storageService.isMasterAdmin());
+  const [isMasterAdmin, setIsMasterAdmin] = useState<boolean>(() => authApi.isSuperAdminLoggedIn());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isCreateStoreModalOpen, setIsCreateStoreModalOpen] = useState<boolean>(false);
 
@@ -37,9 +38,14 @@ export default function App() {
     } else if (storeSlug) {
       setCurrentView({ type: 'store', vendorSlug: storeSlug });
     } else if (viewParam === 'admin') {
-      setCurrentView({ type: 'admin' });
-      setIsMasterAdmin(true);
-      storageService.setMasterAdmin(true);
+      if (authApi.isSuperAdminLoggedIn()) {
+        setCurrentView({ type: 'admin' });
+        setIsMasterAdmin(true);
+      } else {
+        // Super Admin access requires strict authentication
+        setIsAuthModalOpen(true);
+        setCurrentView({ type: 'landing' });
+      }
     } else if (viewParam === 'vendor') {
       const defaultVendor = storageService.getVendors()[0];
       setCurrentView({ type: 'vendor', vendorId: vendorIdParam || defaultVendor?.id || 'vendor_rajwada' });
@@ -51,7 +57,7 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.altKey && e.key.toLowerCase() === 'a') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a')) {
         e.preventDefault();
-        if (storageService.isMasterAdmin()) {
+        if (authApi.isSuperAdminLoggedIn()) {
           handleNavigate({ type: 'admin' });
         } else {
           setIsAuthModalOpen(true);
@@ -80,8 +86,11 @@ export default function App() {
 
   const handleNavigate = (view: AppView) => {
     if (view.type === 'admin') {
+      if (!authApi.isSuperAdminLoggedIn()) {
+        setIsAuthModalOpen(true);
+        return;
+      }
       setIsMasterAdmin(true);
-      storageService.setMasterAdmin(true);
     }
 
     setCurrentView(view);
@@ -161,6 +170,7 @@ export default function App() {
         {currentView.type === 'vendor' && (
           <VendorDashboard
             vendorId={currentView.vendorId}
+            initialTab={currentView.tab}
             onNavigate={handleNavigate}
           />
         )}

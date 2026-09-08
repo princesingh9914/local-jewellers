@@ -9,10 +9,13 @@ import {
   CheckCircle2,
   Gem,
   Building2,
-  ShieldCheck
+  ShieldCheck,
+  Lock,
+  KeyRound
 } from 'lucide-react';
 import { Vendor, AppView } from '../../types';
 import { storageService } from '../../services/storage';
+import { authApi } from '../../services/authApi';
 
 interface CreateStoreModalProps {
   isOpen: boolean;
@@ -35,6 +38,8 @@ export const CreateStoreModal: React.FC<CreateStoreModalProps> = ({
   const [state, setState] = useState('Rajasthan');
   const [tagline, setTagline] = useState('Authentic 916 Hallmark Gold & Diamond Jewellery');
   const [plan, setPlan] = useState<Vendor['plan']>(defaultPlan);
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginPin, setLoginPin] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [createdSlug, setCreatedSlug] = useState('');
 
@@ -74,6 +79,16 @@ export const CreateStoreModal: React.FC<CreateStoreModalProps> = ({
     };
 
     storageService.saveVendor(newVendor);
+
+    // Register unique vendor credentials in secure backend
+    authApi.registerVendorCredentials(
+      newVendor.id,
+      newVendor.name,
+      newVendor.phone,
+      loginPassword.trim() || `${slug}@123`,
+      loginPin.trim() || '1234'
+    );
+
     setCreatedSlug(newVendor.slug);
     setIsSuccess(true);
 
@@ -253,6 +268,41 @@ export const CreateStoreModal: React.FC<CreateStoreModalProps> = ({
                       {p}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Vendor Account Credentials */}
+              <div className="p-3 bg-[#FAF6EE] rounded-xl border border-[#E8DFC8] space-y-2">
+                <div className="font-bold text-[#720917] text-xs flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5 text-[#B8860B]" />
+                  <span>Showroom Staff Login Credentials</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#2A1810] mb-0.5">
+                      Password (Optional)
+                    </label>
+                    <input
+                      type="password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="Default: store@123"
+                      className="w-full px-3 py-1.5 text-xs bg-white border border-[#D8CEBE] rounded-lg font-mono focus:ring-2 focus:ring-[#720917]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#2A1810] mb-0.5">
+                      4-Digit PIN (Optional)
+                    </label>
+                    <input
+                      type="password"
+                      maxLength={6}
+                      value={loginPin}
+                      onChange={(e) => setLoginPin(e.target.value)}
+                      placeholder="Default: 1234"
+                      className="w-full px-3 py-1.5 text-xs bg-white border border-[#D8CEBE] rounded-lg font-mono font-bold focus:ring-2 focus:ring-[#720917]"
+                    />
+                  </div>
                 </div>
               </div>
 

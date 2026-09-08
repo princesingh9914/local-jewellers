@@ -38,6 +38,8 @@ export interface Category {
   slug: string;
   iconName?: string;
   description?: string;
+  image?: string; // Feature image URL
+  order?: number;
 }
 
 export interface Product {

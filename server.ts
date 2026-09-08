@@ -3,6 +3,16 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { 
+  verifySuperAdmin, 
+  verifySuperAdminToken, 
+  revokeSuperAdminToken, 
+  verifyVendor, 
+  verifyVendorToken, 
+  revokeVendorToken, 
+  registerVendorCredentials,
+  getVendorLoginHints 
+} from "./server/auth";
 
 dotenv.config();
 
@@ -23,6 +33,118 @@ async function startServer() {
   // API Health Check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", service: "Jewellers Voice AI Assistant" });
+  });
+
+  // ----------------------------------------------------------------
+  // AUTHENTICATION API (Super Admin & Multi-Tenant Vendor Portal)
+  // ----------------------------------------------------------------
+
+  // 1. Super Admin Login (Strict 3-factor rule: Phone + Password + PIN)
+  app.post("/api/auth/super-admin/login", (req, res) => {
+    try {
+      const { phone, password, pin } = req.body;
+      const result = verifySuperAdmin(phone, password, pin);
+
+      if (!result.success) {
+        return res.status(401).json({ 
+          success: false, 
+          error: result.error || "Authentication failed. Incorrect Phone Number, Password, or PIN." 
+        });
+      }
+
+      return res.json({
+        success: true,
+        token: result.token,
+        role: "super_admin",
+        message: "Super Admin authenticated successfully."
+      });
+    } catch (err: any) {
+      console.error("Super Admin login error:", err);
+      return res.status(500).json({ success: false, error: "Server error during authentication" });
+    }
+  });
+
+  // Verify Super Admin Session
+  app.get("/api/auth/super-admin/verify", (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith("Bearer ") 
+      ? authHeader.substring(7) 
+      : (req.query.token as string);
+
+    const isValid = verifySuperAdminToken(token);
+    return res.json({ valid: isValid });
+  });
+
+  // Super Admin Logout
+  app.post("/api/auth/super-admin/logout", (req, res) => {
+    const { token } = req.body;
+    revokeSuperAdminToken(token);
+    return res.json({ success: true });
+  });
+
+  // 2. Vendor Portal Login (Each vendor has unique Phone + Password + PIN)
+  app.post("/api/auth/vendor/login", (req, res) => {
+    try {
+      const { phone, password, pin } = req.body;
+      const result = verifyVendor(phone, password, pin);
+
+      if (!result.success) {
+        return res.status(401).json({ 
+          success: false, 
+          error: result.error || "Vendor authentication failed. Incorrect Phone Number, Password, or PIN." 
+        });
+      }
+
+      return res.json({
+        success: true,
+        token: result.token,
+        vendorId: result.vendorId,
+        vendorName: result.vendorName,
+        message: `Welcome back to ${result.vendorName} Management Portal.`
+      });
+    } catch (err: any) {
+      console.error("Vendor login error:", err);
+      return res.status(500).json({ success: false, error: "Server error during vendor authentication" });
+    }
+  });
+
+  // Verify Vendor Session
+  app.get("/api/auth/vendor/verify", (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith("Bearer ") 
+      ? authHeader.substring(7) 
+      : (req.query.token as string);
+
+    const check = verifyVendorToken(token);
+    return res.json(check);
+  });
+
+  // Vendor Logout
+  app.post("/api/auth/vendor/logout", (req, res) => {
+    const { token } = req.body;
+    revokeVendorToken(token);
+    return res.json({ success: true });
+  });
+
+  // Register or Update Vendor Credentials (from Admin / Onboarding)
+  app.post("/api/auth/vendor/register-credentials", (req, res) => {
+    try {
+      const { vendorId, vendorName, phone, password, pin } = req.body;
+      if (!vendorId || !phone || !password || !pin) {
+        return res.status(400).json({ success: false, error: "Missing required credential parameters" });
+      }
+
+      const result = registerVendorCredentials(vendorId, vendorName || "Showroom", phone, password, pin);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: "Failed to store vendor credentials" });
+    }
+  });
+
+  // Demo hints (Showroom names and phones only, never exposing password or PIN)
+  app.get("/api/auth/vendor/hints", (req, res) => {
+    const hints = getVendorLoginHints();
+    return res.json({ success: true, vendors: hints });
   });
 
   // Voice Query & AI Customer Assistant Endpoint

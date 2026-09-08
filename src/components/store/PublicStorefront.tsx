@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   Search, 
   Filter, 
@@ -17,7 +17,9 @@ import {
   Navigation,
   ExternalLink,
   Award,
+  ChevronLeft,
   ChevronRight,
+  Layers,
   Info,
   BookOpen,
   Calendar,
@@ -62,6 +64,19 @@ export const PublicStorefront: React.FC<PublicStorefrontProps> = ({
   const [activeModalBlog, setActiveModalBlog] = useState<BlogPost | null>(null);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
   
+  // Ref for inline category scroll
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollCategories = (direction: 'left' | 'right') => {
+    if (categoryScrollRef.current) {
+      const scrollAmount = 300;
+      categoryScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   // Cart state
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -272,6 +287,140 @@ export const PublicStorefront: React.FC<PublicStorefrontProps> = ({
 
       </div>
 
+      {/* INLINE SHOWROOM CATEGORIES WITH FEATURE IMAGES (Hero Section ke Niche) */}
+      <section id="inline-categories" className="border-b border-[#E8DFC8]/70 bg-gradient-to-b from-[#FFFDF9] via-[#FAF6EE] to-[#FFFDF9] py-6 sm:py-8 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-5">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FAF0D7] border border-[#E5C158] text-[#720917] text-[11px] font-bold uppercase tracking-wider mb-1.5">
+                <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                <span>Curated Collections • श्रेणियाँ</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold font-royal text-[#2A1810] tracking-tight">
+                Shop by Category
+              </h2>
+              <p className="text-xs text-[#7A6855] mt-0.5">
+                Explore handcrafted bridal sets, daily wear, and pure hallmarked treasures
+              </p>
+            </div>
+
+            {/* Desktop Carousel Navigation Controls */}
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <button
+                type="button"
+                onClick={() => scrollCategories('left')}
+                className="w-8 h-8 rounded-full border border-[#D8CEBE] bg-white hover:bg-[#FAF0D7] hover:border-[#D4AF37] text-[#2A1810] flex items-center justify-center transition-all shadow-xs"
+                title="Previous categories"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollCategories('right')}
+                className="w-8 h-8 rounded-full border border-[#D8CEBE] bg-white hover:bg-[#FAF0D7] hover:border-[#D4AF37] text-[#2A1810] flex items-center justify-center transition-all shadow-xs"
+                title="Next categories"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Inline Scrollable Categories Row */}
+          <div
+            ref={categoryScrollRef}
+            className="flex items-start gap-4 sm:gap-6 overflow-x-auto pb-2 pt-1 scroll-smooth scrollbar-none snap-x"
+          >
+            {/* "All Ornaments" Circle Card */}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory('all');
+                const target = document.getElementById('categories-section');
+                if (target) target.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="snap-start shrink-0 flex flex-col items-center text-center group cursor-pointer w-20 sm:w-24 focus:outline-none"
+            >
+              <div
+                className={`w-18 h-18 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 transition-all flex items-center justify-center relative p-1 ${
+                  selectedCategory === 'all'
+                    ? 'border-[#720917] ring-4 ring-[#720917]/20 shadow-md scale-105 bg-[#FAF0D7]'
+                    : 'border-[#D4AF37]/50 bg-white group-hover:border-[#720917] group-hover:shadow-md'
+                }`}
+              >
+                <div className="w-full h-full rounded-xl bg-gradient-to-br from-[#4A0E17] via-[#720917] to-[#A01A2C] flex flex-col items-center justify-center text-[#FAF0D7] p-1 shadow-inner">
+                  <Gem className="w-7 h-7 text-[#E5C158] group-hover:scale-110 transition-transform" />
+                  <span className="text-[9px] font-bold mt-0.5 tracking-wider uppercase text-[#E5C158]">All</span>
+                </div>
+              </div>
+              <span
+                className={`text-xs font-bold mt-2 truncate w-full text-center transition-colors ${
+                  selectedCategory === 'all' ? 'text-[#720917]' : 'text-[#2A1810] group-hover:text-[#720917]'
+                }`}
+              >
+                All Ornaments
+              </span>
+              <span className="text-[10px] text-[#7A6855] font-medium">
+                {products.length} Designs
+              </span>
+            </button>
+
+            {/* Individual Category Cards with Feature Image */}
+            {categories.map((cat) => {
+              const catCount = products.filter((p) => p.categoryId === cat.id).length;
+              const isSelected = selectedCategory === cat.id;
+
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory(cat.id);
+                    const target = document.getElementById('categories-section');
+                    if (target) target.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="snap-start shrink-0 flex flex-col items-center text-center group cursor-pointer w-20 sm:w-24 focus:outline-none"
+                >
+                  <div
+                    className={`w-18 h-18 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 transition-all relative shadow-xs ${
+                      isSelected
+                        ? 'border-[#720917] ring-4 ring-[#720917]/25 shadow-lg scale-105 bg-[#FAF0D7]'
+                        : 'border-[#D4AF37]/60 bg-white group-hover:border-[#720917] group-hover:scale-105 group-hover:shadow-md'
+                    }`}
+                  >
+                    <img
+                      src={cat.image || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&auto=format&fit=crop&q=80'}
+                      alt={cat.name}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&auto=format&fit=crop&q=80';
+                      }}
+                    />
+                    {/* Tiny Count Tag Overlay */}
+                    <span className="absolute bottom-1 right-1 bg-black/75 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white/20">
+                      {catCount}
+                    </span>
+                  </div>
+
+                  <span
+                    className={`text-xs font-bold mt-2 line-clamp-1 w-full text-center transition-colors ${
+                      isSelected ? 'text-[#720917]' : 'text-[#2A1810] group-hover:text-[#720917]'
+                    }`}
+                    title={cat.name}
+                  >
+                    {cat.name}
+                  </span>
+                  <span className="text-[10px] text-[#7A6855] font-medium">
+                    {catCount} Items
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* STORE SEARCH & CATEGORY FILTERS */}
       <div id="categories-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-5">
         
@@ -397,7 +546,7 @@ export const PublicStorefront: React.FC<PublicStorefrontProps> = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
               {filteredProducts.map((product) => {
                 const inCart = cartItems.some((ci) => ci.product.id === product.id);
                 const availabilityText = product.availability || (product.inStock ? 'In Stock' : 'Made to Order');
@@ -405,7 +554,7 @@ export const PublicStorefront: React.FC<PublicStorefrontProps> = ({
                 return (
                   <div
                     key={product.id}
-                    className="bg-white rounded-2xl overflow-hidden border border-[#E8DFC8] shadow-xs hover:shadow-lg transition-all duration-250 flex flex-col justify-between group"
+                    className="bg-white rounded-2xl overflow-hidden border border-[#E8DFC8] shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
                   >
                     <div>
                       {/* Product Image */}
@@ -420,15 +569,15 @@ export const PublicStorefront: React.FC<PublicStorefrontProps> = ({
                         />
                         
                         {/* Purity Tag */}
-                        <div className="absolute top-2.5 left-2.5">
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#FAF8F5]/90 text-[#4A0E17] border border-[#D4AF37]/50 shadow-xs backdrop-blur-xs">
+                        <div className="absolute top-2 left-2">
+                          <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold bg-[#FAF8F5]/90 text-[#4A0E17] border border-[#D4AF37]/50 shadow-xs backdrop-blur-xs">
                             {product.purity}
                           </span>
                         </div>
 
                         {/* Availability Tag */}
-                        <div className="absolute top-2.5 right-2.5">
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold shadow-xs backdrop-blur-xs ${
+                        <div className="absolute top-2 right-2">
+                          <span className={`px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold shadow-xs backdrop-blur-xs ${
                             availabilityText === 'In Stock'
                               ? 'bg-[#EBF9F0]/90 text-[#1B6D3E] border border-[#1B6D3E]/30'
                               : availabilityText === 'Made to Order'
@@ -441,8 +590,8 @@ export const PublicStorefront: React.FC<PublicStorefrontProps> = ({
 
                         {/* Weight Tag */}
                         {product.grossWeightGrams && (
-                          <div className="absolute bottom-2.5 right-2.5">
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/60 text-white shadow-xs backdrop-blur-xs flex items-center gap-1">
+                          <div className="absolute bottom-2 right-2">
+                            <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold bg-black/65 text-white shadow-xs backdrop-blur-xs flex items-center gap-1">
                               <Scale className="w-2.5 h-2.5" />
                               ~{product.grossWeightGrams}g
                             </span>
@@ -451,48 +600,47 @@ export const PublicStorefront: React.FC<PublicStorefrontProps> = ({
                       </div>
 
                       {/* Content */}
-                      <div className="p-4 space-y-2">
+                      <div className="p-2.5 sm:p-3 space-y-1.5">
                         <h3 
                           onClick={() => setActiveModalProduct(product)}
-                          className="text-sm font-bold font-royal text-[#2A1810] line-clamp-1 hover:text-[#8C232C] cursor-pointer"
+                          className="text-xs sm:text-sm font-bold font-royal text-[#2A1810] line-clamp-1 hover:text-[#8C232C] cursor-pointer"
+                          title={product.title}
                         >
                           {product.title}
                         </h3>
 
                         {/* Stones & Size badges if present */}
-                        <div className="flex flex-wrap items-center gap-1.5 min-h-[22px]">
-                          {product.stoneDetails && (
-                            <span className="text-[10px] bg-[#FAF3E6] text-[#7A5812] px-1.5 py-0.5 rounded flex items-center gap-1 line-clamp-1 border border-[#E8DFC8]">
-                              <Gem className="w-2.5 h-2.5 text-[#B8860B] shrink-0" />
-                              <span className="truncate max-w-[130px]">{product.stoneDetails}</span>
-                            </span>
-                          )}
-                          {product.size && (
-                            <span className="text-[10px] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
-                              Size: {product.size}
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="text-[11px] text-[#7A6855] line-clamp-2 leading-relaxed">
-                          {product.description}
-                        </p>
+                        {(product.stoneDetails || product.size) && (
+                          <div className="flex flex-wrap items-center gap-1">
+                            {product.stoneDetails && (
+                              <span className="text-[9px] sm:text-[10px] bg-[#FAF3E6] text-[#7A5812] px-1.5 py-0.5 rounded flex items-center gap-1 border border-[#E8DFC8]">
+                                <Gem className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-[#B8860B] shrink-0" />
+                                <span className="truncate max-w-[110px]">{product.stoneDetails}</span>
+                              </span>
+                            )}
+                            {product.size && (
+                              <span className="text-[9px] sm:text-[10px] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                                Size: {product.size}
+                              </span>
+                            )}
+                          </div>
+                        )}
 
                         {/* Price & Making Charges */}
-                        <div className="pt-2 flex items-baseline justify-between border-t border-[#F5EFE6]">
+                        <div className="pt-1.5 flex items-baseline justify-between border-t border-[#F5EFE6]">
                           <div>
-                            <span className="text-lg font-bold text-[#4A0E17] font-cinzel">
+                            <span className="text-sm sm:text-base font-bold text-[#4A0E17] font-cinzel">
                               ₹{product.price.toLocaleString('en-IN')}
                             </span>
                             {product.originalPrice && (
-                              <span className="text-[11px] text-gray-400 line-through ml-1.5">
+                              <span className="text-[9px] sm:text-[10px] text-gray-400 line-through ml-1">
                                 ₹{product.originalPrice.toLocaleString('en-IN')}
                               </span>
                             )}
                           </div>
                           {product.makingCharges && (
-                            <span className="text-[10px] text-[#8C6D23] font-medium">
-                              Making: {product.makingCharges}
+                            <span className="text-[9px] sm:text-[10px] text-[#8C6D23] font-medium truncate max-w-[85px] sm:max-w-[110px] text-right">
+                              {product.makingCharges}
                             </span>
                           )}
                         </div>
@@ -500,17 +648,17 @@ export const PublicStorefront: React.FC<PublicStorefrontProps> = ({
                     </div>
 
                     {/* Card Actions */}
-                    <div className="p-4 pt-0 grid grid-cols-2 gap-2">
+                    <div className="p-2.5 sm:p-3 pt-0 grid grid-cols-2 gap-1.5 sm:gap-2">
                       <button
                         onClick={() => setActiveModalProduct(product)}
-                        className="py-2 px-2.5 rounded-xl border border-[#D8CEBE] bg-[#FAF8F5] hover:bg-[#F0EAE1] text-[#2A1810] text-xs font-bold transition-all"
+                        className="py-1.5 sm:py-2 px-1.5 sm:px-2.5 rounded-xl border border-[#D8CEBE] bg-[#FAF8F5] hover:bg-[#F0EAE1] text-[#2A1810] text-[11px] sm:text-xs font-bold transition-all text-center"
                       >
                         Details
                       </button>
 
                       <button
                         onClick={() => handleAddToCart(product, 1)}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-xs ${
+                        className={`py-1.5 sm:py-2 px-1.5 sm:px-2.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-xs ${
                           inCart
                             ? 'bg-[#1B6D3E] text-white hover:bg-[#145630]'
                             : 'bg-[#4A0E17] hover:bg-[#681420] text-white'
@@ -518,13 +666,13 @@ export const PublicStorefront: React.FC<PublicStorefrontProps> = ({
                       >
                         {inCart ? (
                           <>
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                             <span>Added</span>
                           </>
                         ) : (
                           <>
-                            <ShoppingBag className="w-3.5 h-3.5 text-[#E5C158]" />
-                            <span>Add to Cart</span>
+                            <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#E5C158] shrink-0" />
+                            <span className="truncate">Add to Cart</span>
                           </>
                         )}
                       </button>

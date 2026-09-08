@@ -12,6 +12,51 @@ const STORAGE_KEYS = {
   MASTER_ADMIN: 'jwellers_master_admin_session_v1',
 };
 
+export const DEFAULT_JEWELLERY_CATEGORIES: Omit<Category, 'id' | 'vendorId'>[] = [
+  {
+    name: 'Bridal Chokers & Necklaces',
+    slug: 'bridal-chokers-necklaces',
+    description: 'Heavy Kundan, Polki, and antique gold bridal necklaces',
+    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Jhumkas & Earrings',
+    slug: 'jhumkas-earrings',
+    description: 'Traditional chaandbalis, jhumkas, and studded ear ornaments',
+    image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=600&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Antique Bangles & Kadas',
+    slug: 'antique-bangles-kadas',
+    description: '22K gold kadas, pachheli, and meenakari bangles',
+    image: 'https://images.unsplash.com/photo-1611591475155-4286fa7c2e60?w=600&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Rings & Solitaires',
+    slug: 'rings-solitaires',
+    description: 'Hallmark certified gold rings and solitaire bands',
+    image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Mangalsutras & Chains',
+    slug: 'mangalsutras-chains',
+    description: 'Daily wear 916 gold chains and modern designer tanmaniya',
+    image: 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=600&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Maang Tikka & Bridal Sets',
+    slug: 'maang-tikka-bridal-sets',
+    description: 'Bridal mathapatti, tikkas, and hathphool sets',
+    image: 'https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?w=600&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Gold Coins & Bullion',
+    slug: 'gold-coins-bullion',
+    description: '24K 999 pure gold coins and silver bars with purity certificate',
+    image: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=600&auto=format&fit=crop&q=80',
+  },
+];
+
 class MultiTenantStorageService {
   private initStorage() {
     if (typeof window === 'undefined') return;
@@ -70,6 +115,8 @@ class MultiTenantStorageService {
       vendors.unshift(vendor);
     }
     localStorage.setItem(STORAGE_KEYS.VENDORS, JSON.stringify(vendors));
+    // Ensure the vendor has initial default categories
+    this.seedDefaultCategories(vendor.id);
   }
 
   toggleVendorStatus(vendorId: string): Vendor | undefined {
@@ -88,14 +135,58 @@ class MultiTenantStorageService {
   }
 
   // ---- CATEGORIES (Vendor Isolated) ----
+  seedDefaultCategories(vendorId: string): Category[] {
+    if (!vendorId) return [];
+    try {
+      const all = this.getAllCategories();
+      const existing = all.filter((c) => c.vendorId === vendorId);
+      if (existing.length > 0) return existing;
+
+      const safeVendorPrefix = vendorId.replace(/[^a-zA-Z0-9]/g, '_');
+      const newCats: Category[] = DEFAULT_JEWELLERY_CATEGORIES.map((def, idx) => ({
+        id: `cat_${safeVendorPrefix}_${idx + 1}`,
+        vendorId,
+        name: def.name,
+        slug: def.slug,
+        description: def.description,
+        image: def.image,
+        order: idx + 1,
+      }));
+
+      all.push(...newCats);
+      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(all));
+      return newCats;
+    } catch {
+      return [];
+    }
+  }
+
   getCategories(vendorId: string): Category[] {
     this.initStorage();
     try {
       const data = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
       const allCategories: Category[] = data ? JSON.parse(data) : SEED_CATEGORIES;
-      return allCategories.filter((c) => c.vendorId === vendorId);
+      const vendorCategories = allCategories.filter((c) => c.vendorId === vendorId);
+      
+      // If vendor has no categories, auto-seed standard jewellery categories!
+      if (vendorCategories.length === 0 && vendorId) {
+        return this.seedDefaultCategories(vendorId);
+      }
+
+      // If categories from existing local storage are missing feature image, backfill from seed or defaults
+      return vendorCategories.map((c) => {
+        if (!c.image) {
+          const match = SEED_CATEGORIES.find((sc) => sc.id === c.id || sc.slug === c.slug)
+            || DEFAULT_JEWELLERY_CATEGORIES.find((dc) => dc.slug === c.slug);
+          if (match && match.image) {
+            return { ...c, image: match.image };
+          }
+        }
+        return c;
+      });
     } catch {
-      return SEED_CATEGORIES.filter((c) => c.vendorId === vendorId);
+      const fallback = SEED_CATEGORIES.filter((c) => c.vendorId === vendorId);
+      return fallback.length > 0 ? fallback : this.seedDefaultCategories(vendorId);
     }
   }
 
@@ -427,13 +518,6 @@ class MultiTenantStorageService {
       localStorage.removeItem(STORAGE_KEYS.MASTER_ADMIN);
       sessionStorage.removeItem(STORAGE_KEYS.MASTER_ADMIN);
     }
-  }
-
-  verifyAdminPin(pin: string): boolean {
-    const trimmed = pin.trim().toLowerCase();
-    const cleanDigits = trimmed.replace(/\D/g, '');
-    // Owner Rahul's master PIN: 7087 (first 4 digits of 7087033009), 7087033009, or 'admin'
-    return cleanDigits === '7087' || cleanDigits === '7087033009' || trimmed === 'admin';
   }
 
   // Reset sample data if needed

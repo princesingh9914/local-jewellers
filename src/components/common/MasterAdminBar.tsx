@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Vendor, AppView } from '../../types';
 import { storageService } from '../../services/storage';
+import { authApi } from '../../services/authApi';
 
 interface MasterAdminBarProps {
   activeVendor?: Vendor;
@@ -172,12 +173,16 @@ export const MasterAdminBar: React.FC<MasterAdminBarProps> = ({
           {/* Exit Admin Mode */}
           {onExitAdminMode && (
             <button
-              onClick={onExitAdminMode}
+              onClick={async () => {
+                await authApi.logoutSuperAdmin();
+                storageService.setMasterAdmin(false);
+                onExitAdminMode();
+              }}
               className="hidden xl:flex items-center gap-1 p-1.5 rounded-lg hover:bg-red-500/20 text-red-300 hover:text-red-200 transition-colors text-[11px]"
-              title="Exit Admin Preview Mode (Pure Customer View)"
+              title="Logout from Super Admin Session"
             >
               <LogOut className="w-3 h-3" />
-              <span>Exit Preview</span>
+              <span>Logout Super Admin</span>
             </button>
           )}
 

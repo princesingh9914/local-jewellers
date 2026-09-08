@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BlogPost, Vendor } from '../../types';
 import { storageService } from '../../services/storage';
+import { ImageUploader } from '../common/ImageUploader';
 import { BookOpen, Plus, Trash2, Edit3, Eye, Clock, Calendar, Check, X, Sparkles, Image as ImageIcon } from 'lucide-react';
 
 interface VendorBlogsTabProps {
@@ -22,6 +23,7 @@ export const VendorBlogsTab: React.FC<VendorBlogsTabProps> = ({ vendor, onRefres
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [updateMsg, setUpdateMsg] = useState<string | null>(null);
 
   // Form fields
   const [title, setTitle] = useState('');
@@ -81,21 +83,51 @@ export const VendorBlogsTab: React.FC<VendorBlogsTabProps> = ({ vendor, onRefres
       isPublished,
     };
 
+    const isUpdate = Boolean(editingId);
     storageService.saveBlog(vendor.id, newBlog);
     setIsEditing(false);
     setEditingId(null);
     onRefresh();
+    const msg = isUpdate
+      ? `Article "${newBlog.title}" updated successfully!`
+      : `Article "${newBlog.title}" published successfully!`;
+    setUpdateMsg(msg);
+    setTimeout(() => setUpdateMsg(null), 5000);
   };
 
   const handleDelete = (blogId: string) => {
     if (confirm('Are you sure you want to delete this blog article?')) {
       storageService.deleteBlog(vendor.id, blogId);
       onRefresh();
+      setUpdateMsg('Article deleted successfully.');
+      setTimeout(() => setUpdateMsg(null), 4000);
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Update Message Alert Banner */}
+      {updateMsg && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-950 text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              <Check className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="block font-black text-[13px] text-emerald-900">Updated Successfully!</span>
+              <span className="text-[11px] text-emerald-700 font-medium">{updateMsg}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setUpdateMsg(null)}
+            className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Header with Stats & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E8DFC8] shadow-xs">
         <div>
@@ -186,31 +218,14 @@ export const VendorBlogsTab: React.FC<VendorBlogsTabProps> = ({ vendor, onRefres
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-[#2A1810] mb-1 flex items-center justify-between">
-                  <span>Featured Image URL</span>
-                  <span className="text-[11px] text-[#8C6D23] font-normal">Select a preset or paste link</span>
-                </label>
-                <input
-                  type="url"
-                  required
+                <ImageUploader
                   value={featuredImage}
-                  onChange={(e) => setFeaturedImage(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#D8CEBE] text-xs focus:border-[#4A0E17] focus:outline-hidden mb-2"
+                  onChange={(val) => setFeaturedImage(val)}
+                  label="Article Featured Cover Image (कवर फोटो अपलोड करें)"
+                  helperText="Upload a photo from your device or choose a preset."
+                  aspectRatio="wide"
+                  presets={PRESET_BLOG_IMAGES.map((url, i) => ({ label: `Cover Preset ${i + 1}`, url }))}
                 />
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                  {PRESET_BLOG_IMAGES.map((img, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setFeaturedImage(img)}
-                      className={`w-14 h-10 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${
-                        featuredImage === img ? 'border-[#4A0E17] ring-2 ring-[#D4AF37]' : 'border-gray-200 opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={img} alt="preset" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div>
