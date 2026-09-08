@@ -1,0 +1,6 @@
+{
+  "name": "Jwellersname.com - Multi-Tenant Jewellers SaaS",
+  "description": "Multi-tenant SaaS web platform for Indian jewellers featuring isolated vendor digital showrooms, product catalogs, and direct WhatsApp order inquiries.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-cinzel: 'Cinzel', serif;
+    --font-marcellus: 'Marcellus', serif;
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1A1615;
+    background-color: #FAF8F5;
+  }
+
+  h1, h2, h3, .font-royal {
+    font-family: 'Cinzel', 'Marcellus', serif;
+    letter-spacing: 0.03em;
+    line-height: 1.25;
+  }
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.03em;
+}
+
+.font-royal {
+  font-family: 'Cinzel', 'Marcellus', serif;
+  letter-spacing: 0.03em;
+}
+
+/* Indian ornamental border and glow styling */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #996515 0%, #D4AF37 40%, #AA771C 70%, #68480C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #B8860B 0%, #D4AF37 50%, #C59B27 100%);
+}
+
+.maroon-royal-bg {
+  background: radial-gradient(circle at 50% 0%, #5B141D 0%, #3B090F 100%);
+}
+
+.subtle-pattern {
+  background-color: #FAF8F5;
+  background-image: radial-gradient(#d4af37 0.75px, transparent 0.75px), radial-gradient(#d4af37 0.75px, #FAF8F5 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
